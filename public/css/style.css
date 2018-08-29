@@ -1,0 +1,20 @@
+body {
+  padding: 50px;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  background: #333;
+  color: #fff;
+}
+body #grab {
+  display: none;
+}
+body table td,
+body table th {
+  border: 1px dashed #ddd;
+  padding: 8px;
+  text-align: center
+}
+body iframe {
+  display: block;
+  width: 100%;
+  height: calc(100vh - 100px);
+}
