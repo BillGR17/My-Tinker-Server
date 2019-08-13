@@ -9,7 +9,7 @@ function format(sec) {
     hours = Math.floor((sec % 86400) / 3600),
     minutes = Math.floor(((sec % 86400) % 3600) / 60),
     result = "";
-  if (days >= 1) result += days + "d ";
+  result = (days >= 1) ? days + "d " : "";
   result += `${hours}:${minutes}`;
   return result;
 }
@@ -24,7 +24,7 @@ let data = {
 function everySec() {
   fs.readFile("/sys/class/thermal/thermal_zone0/temp", "utf8", function(_e, _f) {
     if (_e) throw _e;
-    data.temp = parseFloat(parseInt(_f.replace("\n", "")) / 1000).toFixed(0);
+    data.temp = parseFloat(parseInt(_f) / 1000).toFixed(0);
   });
   fs.readFile("/proc/meminfo", "utf8", function(_e, _f) {
     if (_e) throw _e;
@@ -34,7 +34,6 @@ function everySec() {
   });
   fs.readFile("/sys/class/net/eth0/statistics/rx_bytes", "utf8", function(_e, _f) {
     if (_e) throw _e;
-    //get eth0
     fs.readFile("/sys/class/net/eth0/statistics/tx_bytes", "utf8", function(__e, __f) {
       if (__e) throw __e;
       data.net = "D: " + parseFloat(parseInt(_f) / 1024 / 1024 / 1024).toFixed(2) + "<sub>gb</sub> | U: " + parseFloat(parseInt(__f) / 1024 / 1024 / 1024).toFixed(2) + "<sub>gb</sub>";
@@ -43,7 +42,6 @@ function everySec() {
   data.uptime = format(os.uptime);
 }
 //echo -n returns output without line break
-//execSync is used to make sure the data will be grabbed before sending them to json
 //apt get will take long no matter what internet connection so its better to be set outside the json
 function everyHour() {
   exec("apt update > /dev/null 2>&1&&apt list --upgradable", "utf8", function(_e, _d) {
@@ -62,7 +60,7 @@ setInterval(everySec, 1000); //update every Sec;
 http.createServer((req, res) => {
   //send check if file exists then sends them and it will handle 200-404 status
   //path and public folder is created just for an extra security
-  //it isnt realy needed for everything else...
+  //it isnt really needed for everything else...
   function send(file) {
     var loc = path.join(__dirname, `public/${file}`);
     if (fs.existsSync(loc)) {
@@ -101,5 +99,5 @@ http.createServer((req, res) => {
   } //sends all data
   else {
     send(req.url);
-  } //basicly this is used to send js and css files only
+  } //basically this is used to send js and css files only
 }).listen(80); //change the port to whatever you want
