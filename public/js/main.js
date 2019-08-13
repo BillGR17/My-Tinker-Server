@@ -7,14 +7,12 @@ function update() {
   };
   xhttp.open("GET", "/json", true);
   xhttp.send();
-
 }
-function updateDis(d){
-  var l=JSON.parse(d);
-  document.getElementById('grab').style.display = "block";
-  for (var i in l){
-    document.getElementById(i).innerHTML=l[i];
+function updateDis(d) {
+  var l = JSON.parse(d);
+  document.getElementById("grab").style.display = "block";
+  for (var i in l) {
+    document.getElementById(i).innerHTML = l[i];
   }
 }
-
-setInterval(update,1000);
+setInterval(update, 1000);
