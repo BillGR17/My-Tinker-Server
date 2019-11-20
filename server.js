@@ -1,7 +1,8 @@
-var http = require("http"),
+const http = require("http"),
   fs = require("fs"),
   path = require("path"),
   os = require("os"),
+  config = require("./config.json"),
   exec = require("child_process").exec;
 //format is used for uptime secs to days-hous-min
 function format(sec) {
@@ -23,19 +24,19 @@ let data = {
 };
 function everySec() {
   fs.readFile("/sys/class/thermal/thermal_zone0/temp", "utf8", function(_e, _f) {
-    if (_e) throw _e;
+    if (_e) console.error(_e);
     data.temp = parseFloat(parseInt(_f) / 1000).toFixed(0);
   });
   fs.readFile("/proc/meminfo", "utf8", function(_e, _f) {
-    if (_e) throw _e;
+    if (_e) console.error(_e);
     let mt = _f.split("\n")[0].match(/\d+/),
       ma = _f.split("\n")[2].match(/\d+/);
     data.ram = parseFloat(parseInt(mt - ma) / 1024 / 1024).toFixed(2) + "<sub>gb</sub> | " + parseFloat(parseInt(mt) / 1024 / 1024).toFixed(2) + "<sub>gb</sub>";
   });
-  fs.readFile("/sys/class/net/eth0/statistics/rx_bytes", "utf8", function(_e, _f) {
-    if (_e) throw _e;
-    fs.readFile("/sys/class/net/eth0/statistics/tx_bytes", "utf8", function(__e, __f) {
-      if (__e) throw __e;
+  fs.readFile("/sys/class/net/" + config.netInterface + "/statistics/rx_bytes", "utf8", function(_e, _f) {
+    if (_e) console.error(_e);
+    fs.readFile("/sys/class/net/" + config.netInterface + "/statistics/tx_bytes", "utf8", function(__e, __f) {
+      if (_e) console.error(_e);
       data.net = "D: " + parseFloat(parseInt(_f) / 1024 / 1024 / 1024).toFixed(2) + "<sub>gb</sub> | U: " + parseFloat(parseInt(__f) / 1024 / 1024 / 1024).toFixed(2) + "<sub>gb</sub>";
     });
   });
@@ -45,7 +46,7 @@ function everySec() {
 //apt get will take long no matter what internet connection so its better to be set outside the json
 function everyHour() {
   exec("apt update > /dev/null 2>&1&&apt list --upgradable", "utf8", function(_e, _d) {
-    if (_e) throw _e;
+    if (_e) console.error(_e);
     let spl = _d.split("\n");
     spl.shift(); //removes the useless listing text....
     let pac = spl.join("\n");
@@ -54,9 +55,9 @@ function everyHour() {
   });
 }
 everyHour(); //run on startup
-setInterval(everyHour, 3600000); //update every hour;
+setInterval(everyHour, config.aptCheck); //update every hour;
 everySec(); //run on startup
-setInterval(everySec, 1000); //update every Sec;
+setInterval(everySec, config.systemCheck); //update every Sec;
 http.createServer((req, res) => {
   //send check if file exists then sends them and it will handle 200-404 status
   //path and public folder is created just for an extra security
@@ -81,7 +82,7 @@ http.createServer((req, res) => {
       res.end();
     }
   }
-  //json sends always status 200 ... if the passed data isnt able to stringify then it fail
+  //json sends always status 200 ... If the passed data isnt able to stringify then it fail
   function json(data) {
     res.writeHead(200, {
       "Content-Type": "application/json"
@@ -89,7 +90,7 @@ http.createServer((req, res) => {
     res.write(JSON.stringify(data));
     res.end();
   }
-  //this log will send date of call ip addres and the url called
+  //this log will send date of call ip address and the url called
   console.log(req.url, Date(), req.socket.remoteAddress.replace("::ffff:", "")); //eslint-disable-line
   if (req.url === "/") {
     send("index.html");
@@ -100,4 +101,5 @@ http.createServer((req, res) => {
   else {
     send(req.url);
   } //basically this is used to send js and css files only
-}).listen(80); //change the port to whatever you want
+}).listen(config.port); //change the port to whatever you want
+
