@@ -4,10 +4,14 @@ body {
   background: #333;
   color: #fff;
 }
+body table{
+  width: 100%
+}
 body table td,
 body table th {
   border: 1px dashed #ddd;
   padding: 8px;
+  white-space: nowrap;
   text-align: center
 }
 body iframe {

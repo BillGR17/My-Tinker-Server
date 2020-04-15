@@ -14,7 +14,7 @@ const place_data = (d) => {
   //print values
   let r2 = table.insertRow(1);
   for (let i in d) {
-    r2.insertCell().innerHTML = d[i];
+    r2.insertCell().innerHTML = d[i].toString().replace(/\n/g,"<br>");
   }
   status.appendChild(table);
 };
